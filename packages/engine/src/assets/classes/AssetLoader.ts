@@ -78,21 +78,38 @@ const processModelAsset = (asset: any, params: AssetLoaderParamType): void => {
   })
   replacedMaterials.clear()
 
-  handleLODs(asset)
-
+  //handleLODs(asset)
+  /*
   if (asset.children.length) {
     asset.children.forEach((child) => handleLODs(child))
   }
+  */
+  const frontier = Array<Object3D>()
+  frontier.push(asset)
+  while (frontier.length > 0) {
+    const child = frontier.pop()
+    if (child != null) {
+      if (child.children.length) {
+        child.children.forEach((c) => frontier.push(c))
+      }
+      if (!haveAnyLODs(child)) continue
+      handleLODs(child)
+    }
+  }
+  /*asset.traverse((child) => {
+    if(!haveAnyLODs(child)) return
+    handleLODs(child)
+  })*/
 }
 
+const haveAnyLODs = (asset) => !!asset.children?.find((c) => String(c.name).match(LODS_REGEXP))
 /**
  * Handles Level of Detail for asset.
  * @param asset Asset on which LOD will apply.
  * @returns LOD handled asset.
  */
 const handleLODs = (asset: Object3D): Object3D => {
-  const haveAnyLODs = !!asset.children?.find((c) => String(c.name).match(LODS_REGEXP))
-  if (!haveAnyLODs) {
+  if (!haveAnyLODs(asset)) {
     return asset
   }
 
